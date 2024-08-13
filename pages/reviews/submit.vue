@@ -13,7 +13,6 @@ const content = ref("");
 const uploadError = ref("");
 const validScore = ref(true);
 
-
 function formatSeconds(seconds) {
   const date = new Date(null);
   date.setSeconds(seconds);
@@ -73,7 +72,6 @@ async function submitReview() {
     const vid = {
       youtube_id: videoData.value.id,
       youtube_data: videoData.value,
-      average: rating.value,
     };
     await client.from("videos").insert(vid);
 
@@ -88,44 +86,45 @@ async function submitReview() {
       .from("videos")
       .update({ youtube_data: videoData.value })
       .eq("id", video.id);
-
-    // update the average
-    const reviews = await client
-      .from("reviews")
-      .select("rating")
-      .eq("video", video.id);
-
-    let total = 0;
-    for (let i = 0; i < reviews.data.length; i++) {
-      total += reviews.data[i].rating;
-    }
-
-    const average = total / reviews.data.length;
-
-    await client
-      .from("videos")
-      .update({ average: average })
-      .eq("id", video.id);
-      
   }
-
 
   const review_data = {
     title: title.value,
     content: content.value,
     rating: rating.value,
     user: {
-        id: user.value.id,
-        username: user.value.user_metadata.full_name,
+      id: user.value.id,
+      username: user.value.user_metadata.full_name,
     },
     video: video.id,
   };
+
+  // update the average
+  const reviews = await client
+    .from("reviews")
+    .select("*")
+    .eq("video", video.id);
+
+  for (let i = 0; i < reviews.data.length; i++) {
+    if (reviews.data[i].user.id == user.value.id) {
+      uploadError.value = "you already reviewed this video";
+      return;
+    }
+  }
 
   const review = await client.from("reviews").insert(review_data);
   if (review.error) {
     uploadError.value = review.error.message;
     return;
   }
+
+  let total = 0;
+  for (let i = 0; i < reviews.data.length; i++) {
+    total += reviews.data[i].rating;
+  }
+
+  let average = Math.round(total / reviews.data.length);
+  await client.from("videos").update({ average: average }).eq("id", video.id);
 
   router.push("/videos/" + video.youtube_id);
 }
@@ -150,12 +149,14 @@ async function submitReview() {
         <p v-if="!valid" class="mt-3 text-red-400">> invalid youtube url</p>
         <p v-if="valid" class="mt-3 text-green-400">> valid youtube url</p>
         <div v-if="valid" class="mt-3">
-            <p class="my-2.5">> {{ videoData.views.text }}</p>
-            <p class="my-2.5">> published on {{ videoData.published.pretty }}</p>
-            <p class="my-2.5">> uploaded by {{ videoData.channel.name }}</p>
-            <p class="my-2.5">> {{ videoData.channel.subscribers.pretty }}</p>
-            <p class="my-2.5">> {{ videoData.category.toLowerCase() }}</p>
-            <p class="my-2.5">> {{ formatSeconds(videoData.duration.lengthSec) }}</p>
+          <p class="my-2.5">> {{ videoData.views.text }}</p>
+          <p class="my-2.5">> published on {{ videoData.published.pretty }}</p>
+          <p class="my-2.5">> uploaded by {{ videoData.channel.name }}</p>
+          <p class="my-2.5">> {{ videoData.channel.subscribers.pretty }}</p>
+          <p class="my-2.5">> {{ videoData.category.toLowerCase() }}</p>
+          <p class="my-2.5">
+            > {{ formatSeconds(videoData.duration.lengthSec) }}
+          </p>
         </div>
       </div>
       <div class="mx-auto pl-10 w-[400px]">
