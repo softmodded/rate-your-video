@@ -69,7 +69,7 @@ const logout = async () => {
         <div class="header-links">
           <a class="cursor-pointer" @click="goto('/')">[ home ]</a>
           <a class="cursor-pointer" @click="goto('/videos/top')">[ videos ]</a>
-          <a class="cursor-pointer" @click="goto('/reviews/submit')">[ rate ]</a>
+          <a class="cursor-pointer" @click="goto('/reviews/submit')">[ submit ]</a>
           <a class="cursor-pointer" v-if="!user" @click="openLoginPopup()">[ login ]</a>
           <a class="cursor-pointer" v-if="user" @click="logout()">[ logout ]</a>
         </div>

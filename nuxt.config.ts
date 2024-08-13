@@ -8,8 +8,8 @@ export default defineNuxtConfig({
       login: '/login',
       callback: '/',
       include: undefined,
-      exclude: ['/', '/videos/top'],
-      cookieRedirect: true,
+      exclude: ['/', '/videos/top', '/videos/*', '/videos/*/reviews'],
+      cookieRedirect: false,
     }
   },
 })
