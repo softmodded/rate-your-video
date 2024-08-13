@@ -83,6 +83,30 @@ async function submitReview() {
       .eq("youtube_id", videoData.value.id).data[0];
   } else {
     video = video.data[0];
+    // push the new youtube data
+    await client
+      .from("videos")
+      .update({ youtube_data: videoData.value })
+      .eq("id", video.id);
+
+    // update the average
+    const reviews = await client
+      .from("reviews")
+      .select("rating")
+      .eq("video", video.id);
+
+    let total = 0;
+    for (let i = 0; i < reviews.data.length; i++) {
+      total += reviews.data[i].rating;
+    }
+
+    const average = total / reviews.data.length;
+
+    await client
+      .from("videos")
+      .update({ average: average })
+      .eq("id", video.id);
+      
   }
 
 

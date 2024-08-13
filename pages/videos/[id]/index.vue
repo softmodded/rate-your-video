@@ -101,6 +101,7 @@ function goto(path) {
               v-for="review in reviews"
               :key="review.id"
               :review="review"
+              class="my-5"
             />
           </div>
         </div>
